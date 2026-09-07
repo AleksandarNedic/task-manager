@@ -1,12 +1,16 @@
-import { atom } from "recoil";
-import tasksLocalStorageEffects from "../Effects/tasksLocalStorageEffects";
+import {atom} from "recoil";
+import localStorageEffects from "../Effects/localStorageEffects";
 
-const taskState = atom<{ array: string[] }>({
+type Task = {
+    id: number;
+    task: string;
+    category: string;
+};
+const taskState = atom<{ array: Task[] }>({
     key: "tasks",
     default: {
         array: []
     },
-    effects: [tasksLocalStorageEffects]
+    effects: [localStorageEffects("tasks")]
 });
-
 export default taskState;

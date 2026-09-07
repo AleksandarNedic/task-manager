@@ -1,23 +1,39 @@
-import {type FormEvent, useState} from "react";
+import {useState} from "react";
 import {useRecoilState} from "recoil";
 import userState from "../States/userState";
+import {useForm} from "react-hook-form";
+
+
+type LoginFormData = {
+    email: string;
+    password: string;
+};
 
 const Login = () => {
     const correctEmail = "admin@admin.com";
     const correctPassword = "123456";
     const [currentUserState, setUserState] = useRecoilState(userState);
-    const [username, setUsername] = useState("");
-    const [password, setPassword] = useState("");
+    const [loginMessage, setLoginMessage] = useState("");
 
-    const handleLogin = (e: FormEvent<HTMLFormElement>) => {
 
-        e.preventDefault();
+    const {
+        register,
+        handleSubmit,
+        setError,
+        formState: {errors},
+    } = useForm<LoginFormData>();
 
-        if (username === correctEmail && password === correctPassword) {
+    const handleLogin = (data: LoginFormData) => {
+        if (data.email === correctEmail && data.password === correctPassword) {
             setUserState({loggedIn: true});
+            setLoginMessage("Login successful!");
+            return;
         }
-    };
 
+        setError("root", {
+            message: "User is not found!",
+        });
+    };
 
     if (currentUserState.loggedIn) {
         return (
@@ -32,37 +48,152 @@ const Login = () => {
     }
 
     return (
-        <div className="container mt-5">
-            <form onSubmit={handleLogin}>
-                <h2>Login</h2>
+        <main className="container py-4 py-md-5">
 
-                <div className="mb-3">
-                    <label className="form-label">Email</label>
-                    <input
-                        type="email"
-                        className="form-control"
-                        placeholder="Enter your email"
-                        value={username}
-                        onChange={(e) => setUsername(e.target.value)}
-                    />
+            ```
+            <section
+                className="mx-auto"
+                style={{maxWidth: "480px"}}
+            >
+
+                <div className="card border-0 shadow-lg overflow-hidden rounded-4">
+
+                    <div
+                        className="p-4 p-md-5 text-center text-white"
+                        style={{
+                            background:
+                                "linear-gradient(135deg, #0d6efd, #6610f2, #d63384)",
+                        }}
+                    >
+
+                        <div className="mb-3">
+
+                            <div
+                                className="bg-white text-primary rounded-circle d-inline-flex align-items-center justify-content-center shadow"
+                                style={{
+                                    width: "70px",
+                                    height: "70px",
+                                }}
+                            >
+                    <span className="fs-2">
+                        🔐
+                    </span>
+                            </div>
+
+                        </div>
+
+                        <h1 className="h2 fw-bold mb-2">
+                            Welcome back
+                        </h1>
+
+                        <p className="mb-0 text-white-50">
+                            Login to continue managing your tasks.
+                        </p>
+
+                    </div>
+
+                    <div className="card-body p-4 p-md-5 bg-body-tertiary">
+
+                        <form onSubmit={handleSubmit(handleLogin)}>
+
+                            {errors.root && (
+                                <div className="alert alert-danger border-0 shadow-sm rounded-3">
+                                    {errors.root.message}
+                                </div>
+                            )}
+                            <div className="mb-4">
+
+                                <label
+                                    htmlFor="email"
+                                    className="form-label fw-semibold"
+                                >
+                                    Email address
+                                </label>
+
+                                <input
+                                    id="email"
+                                    type="email"
+                                    className={`form-control form-control-lg ${
+                                        errors.email
+                                            ? "is-invalid"
+                                            : ""
+                                    }`}
+                                    placeholder="Enter your email"
+                                    {...register("email", {
+                                        required: "Email is required",
+                                        pattern: {
+                                            value: /^[^\s@]+@[^\s@]+\.[^\s@]+$/,
+                                            message:
+                                                "Enter a valid email address",
+                                        },
+                                    })}
+                                />
+
+                                {errors.email && (
+                                    <div className="invalid-feedback">
+                                        {errors.email.message}
+                                    </div>
+                                )}
+
+                            </div>
+                            <div className="mb-4">
+
+                                <label
+                                    htmlFor="password"
+                                    className="form-label fw-semibold"
+                                >
+                                    Password
+                                </label>
+
+                                <input
+                                    id="password"
+                                    type="password"
+                                    className={`form-control form-control-lg ${
+                                        errors.password
+                                            ? "is-invalid"
+                                            : ""
+                                    }`}
+                                    placeholder="Enter your password"
+                                    {...register("password", {
+                                        required:
+                                            "Password is required",
+                                        minLength: {
+                                            value: 6,
+                                            message:
+                                                "Password must be at least 6 characters",
+                                        },
+                                    })}
+                                />
+
+                                {errors.password && (
+                                    <div className="invalid-feedback">
+                                        {errors.password.message}
+                                    </div>
+                                )}
+
+                            </div>
+
+                            {/* LOGIN BUTTON */}
+                            <button
+                                type="submit"
+                                className="btn btn-primary btn-lg w-100 fw-semibold shadow-sm"
+                            >
+                                Login
+                            </button>
+
+                        </form>
+
+                    </div>
+                    <div className="card-footer bg-white border-0 text-center py-3">
+
+                        <small className="text-secondary">
+                            Task Manager • Stay organized and productive
+                        </small>
+                    </div>
                 </div>
+            </section>
+        </main>
 
-                <div className="mb-3">
-                    <label className="form-label">Password</label>
-                    <input
-                        type="password"
-                        className="form-control"
-                        placeholder="Enter your password"
-                        value={password}
-                        onChange={(e) => setPassword(e.target.value)}
-                    />
-                </div>
-
-                <button type="submit" className="btn btn-primary">
-                    Login
-                </button>
-            </form>
-        </div>
     );
 };
 

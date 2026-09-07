@@ -7,7 +7,7 @@ const userState = atom({
     default: {
         loggedIn: false,
     },
-    effects: [localStorageEffects]
+    effects: [localStorageEffects("userState")],
 });
 
 export default userState;
