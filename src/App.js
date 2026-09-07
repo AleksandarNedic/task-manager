@@ -1,5 +1,5 @@
-import Login from "./Components/Login";
-import Tasks from "./Components/Tasks";
+import Login from "./Pages/Login";
+import Tasks from "./Pages/Tasks";
 import { RecoilRoot } from "recoil";
 
 function App() {

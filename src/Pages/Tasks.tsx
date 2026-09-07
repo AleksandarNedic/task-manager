@@ -9,9 +9,54 @@ const Tasks = () => {
     const [currentTaskState, setTaskState] = useRecoilState(taskState);
     const [currentUserState, setUserState] = useRecoilState(userState);
 
-
     const [task, setTask] = useState("");
     const [category, setCategory] = useState(categories[0]);
+    const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
+    const [editingText, setEditingText] = useState("");
+    const [editingCategory, setEditingCategory] = useState(categories[0]);
+
+
+    const cancelEdit = () => {
+        setEditingTaskId(null);
+    }
+
+
+    const saveEdit = () => {
+
+        if (editingTaskId === null || !editingText.trim()) {
+            return;
+        }
+
+        setTaskState((currentTaskState) => (
+            {
+                array: currentTaskState.array.map((task) =>
+                    task.id === editingTaskId ? {
+                    ...task,
+                        task:editingText,
+                        category:editingCategory,
+
+                    } : task
+
+
+
+                )
+            }
+        ))
+        setEditingTaskId(null);
+
+    }
+
+    const editTask = (taskId: number) => {
+             const taskToEdit = currentTaskState.array.find(
+                 (task) => task.id === taskId
+             )
+        if (!taskToEdit) {
+            return;
+        }
+        setEditingTaskId(taskId);
+        setEditingText(taskToEdit.task);
+        setEditingCategory(taskToEdit.category);
+    };
 
     const deleteTask = (taskId: number) => {
         setTaskState((currentState) => ({
@@ -138,7 +183,7 @@ const Tasks = () => {
 
                             <div className="row g-2">
 
-                                {/* TASK INPUT */}
+
                                 <div className="col-12 col-md-6">
 
                                 <input
@@ -245,17 +290,64 @@ const Tasks = () => {
                                             {index + 1}
                                         </span>
 
-                                        <div className="flex-grow-1">
+                                        {editingTaskId === item.id ? (
+                                            <>
+                                                <div className="flex-grow-1">
+                                                    <input
+                                                        type="text"
+                                                        className="form-control mb-2"
+                                                        value={editingText}
+                                                        onChange={(e) => setEditingText(e.target.value)}
+                                                    />
 
-                                            <div className="fw-semibold text-break">
-                                                {item.task}
-                                            </div>
+                                                    <select
+                                                        className="form-select"
+                                                        value={editingCategory}
+                                                        onChange={(e) =>
+                                                            setEditingCategory(e.target.value)
+                                                        }
+                                                    >
+                                                        {categories.map((category) => (
+                                                            <option key={category} value={category}>
+                                                                {category}
+                                                            </option>
+                                                        ))}
+                                                    </select>
+                                                </div>
 
-                                            <span className="badge text-bg-secondary rounded-pill mt-1 px-3 py-2">
-                                                {item.category}
-                                            </span>
+                                                <button
+                                                    onClick={saveEdit}
+                                                    type="button"
+                                                    className="btn btn-success btn-sm rounded-pill px-3"
+                                                >
+                                                    Save
+                                                </button>
 
-                                        </div>
+                                                <button
+                                                    onClick={cancelEdit}
+                                                    type="button"
+                                                    className="btn btn-secondary btn-sm rounded-pill px-3"
+                                                >
+                                                    Cancel
+                                                </button>
+                                            </>
+                                        ) : (
+                                            <>
+                                                <div className="flex-grow-1">
+
+                                                    <div className="fw-semibold text-break">
+                                                        {item.task}
+                                                    </div>
+
+                                                    <span className="badge text-bg-secondary rounded-pill mt-1 px-3 py-2">
+                {item.category}
+            </span>
+
+                                                </div>
+
+
+                                            </>
+                                        )}
 
                                         <button
                                             type="button"
@@ -266,6 +358,16 @@ const Tasks = () => {
                                             aria-label={`Delete task: ${item.task}`}
                                         >
                                             Delete
+                                        </button>
+                                        <button
+                                            type="button"
+                                            onClick={() =>
+                                                editTask(item.id)
+                                            }
+                                            className="btn btn-outline-primary btn-sm rounded-pill px-3"
+                                            aria-label={`Edit task: ${item.task}`}
+                                        >
+                                            Edit
                                         </button>
 
                                     </li>
