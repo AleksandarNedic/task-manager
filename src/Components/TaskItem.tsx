@@ -1,4 +1,10 @@
 import categories from "../Utils/Categories"
+import TaskCommentInput from "./TaskCommentInput";
+import { useState } from "react";
+
+
+
+
 
 const TaskItem = ({
                       item,
@@ -13,8 +19,10 @@ const TaskItem = ({
                       cancelEdit,
 
                   }: any) => {
+
+    const [comment, setComment] = useState("");
     return (
-        <li className="list-group-item p-3 rounded-3 shadow-sm">
+        <li className="list-group-item p-3 p-md-4 rounded-3 shadow-sm">
             {isEditing ? (
                 <div>
                     <input
@@ -23,6 +31,7 @@ const TaskItem = ({
                         value={editingText}
                         onChange={(e) => setEditingText(e.target.value)}
                     />
+
                     <select
                         className="form-select mb-2"
                         value={editingCategory}
@@ -37,47 +46,64 @@ const TaskItem = ({
                             </option>
                         ))}
                     </select>
+
                     <div className="d-flex gap-2">
                         <button
                             onClick={() => saveEdit(item.id)}
-                            className="btn btn-sm btn-success">
+                            className="btn btn-sm btn-success"
+                        >
                             Save
                         </button>
 
                         <button
                             onClick={() => cancelEdit(item.id)}
-                            className="btn btn-sm btn-secondary">
+                            className="btn btn-sm btn-secondary"
+                        >
                             Cancel
                         </button>
                     </div>
                 </div>
             ) : (
-                <div className="d-flex justify-content-between align-items-center">
-                    <div>
-                        <div className="fw-semibold fs-5">
-                            {item.task}
+                <div>
+                    <div className="d-flex justify-content-between align-items-start gap-3">
+
+                        <div>
+                            <div className="fw-semibold fs-5">
+                                {item.task}
+                            </div>
+
+                            <span className="badge bg-secondary mt-1">
+                        {item.category}
+                    </span>
                         </div>
 
-                        <span className="badge bg-secondary mt-1">
-                    {item.category}
-                </span>
+                        <div className="d-flex gap-2">
+                            <button
+                                onClick={() => onEdit(item.id)}
+                                className="btn btn-sm btn-outline-primary"
+                            >
+                                Edit
+                            </button>
+
+                            <button
+                                onClick={() => onDelete(item.id)}
+                                className="btn btn-sm btn-outline-danger"
+                            >
+                                Delete
+                            </button>
+                        </div>
+
                     </div>
 
-                    <div className="d-flex gap-2">
-                        <button
-                            onClick={() => onEdit(item.id)}
-                            className="btn btn-sm btn-outline-primary"
-                        >
-                            Edit
-                        </button>
+                    <div className="mt-3 pt-3 border-top">
 
-                        <button
-                            onClick={() => onDelete(item.id)}
-                            className="btn btn-sm btn-outline-danger"
-                        >
-                            Delete
-                        </button>
-                    </div>
+                        <TaskCommentInput
+                            comment={comment}
+                            setComment={setComment}
+                        />
+
+
+                </div>
                 </div>
             )}
         </li>
