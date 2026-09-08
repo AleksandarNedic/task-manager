@@ -1,9 +1,11 @@
 import categories from "../Utils/Categories";
-import {type FormEvent, useState} from "react";
+import {useState} from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
 import {useRecoilState} from "recoil";
 import taskState from "../States/taskState";
 import userState from "../States/userState";
+import TaskItem from "../Components/TaskItem";
+import TaskForm from "../Components/TaskForm"
 
 const Tasks = () => {
     const [currentTaskState, setTaskState] = useRecoilState(taskState);
@@ -14,6 +16,7 @@ const Tasks = () => {
     const [editingTaskId, setEditingTaskId] = useState<number | null>(null);
     const [editingText, setEditingText] = useState("");
     const [editingCategory, setEditingCategory] = useState(categories[0]);
+
 
 
     const cancelEdit = () => {
@@ -66,27 +69,7 @@ const Tasks = () => {
         }));
     };
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
 
-        const taskText = task.trim();
-
-        if (!taskText) {
-            return;
-        }
-
-        const newTask = {
-            id: Date.now(),
-            task: taskText,
-            category: category,
-        };
-
-        setTaskState((currentState) => ({
-            array: [...currentState.array, newTask],
-        }));
-
-        setTask("");
-    };
 
     const logOut = () => {
         setUserState({loggedIn: false});
@@ -167,75 +150,13 @@ const Tasks = () => {
 
 
                     <div className="card-body p-4 p-md-5 bg-body-tertiary">
-
-
-                        <form
-                            onSubmit={handleSubmit}
-                            className="mb-5"
-                        >
-
-                            <label
-                                htmlFor="new-task"
-                                className="form-label fw-semibold"
-                            >
-                                Add a new task
-                            </label>
-
-                            <div className="row g-2">
-
-
-                                <div className="col-12 col-md-6">
-
-                                <input
-                                    id="new-task"
-                                    type="text"
-                                    className="form-control form-control-lg shadow-sm"
-                                    placeholder="What needs to be done?"
-                                    value={task}
-                                    onChange={(e) =>
-                                        setTask(e.target.value)
-                                    }
-                                />
-
-                                </div>
-
-
-                                <div className="col-12 col-md-3">
-
-                                    <select
-                                        className="form-select form-select-lg shadow-sm"
-                                        value={category}
-                                        onChange={(e) =>
-                                            setCategory(e.target.value)
-                                        }
-                                    >
-                                        {categories.map((category) => (
-                                            <option
-                                                key={category}
-                                                value={category}
-                                            >
-                                                {category}
-                                            </option>
-                                        ))}
-                                    </select>
-
-                                </div>
-
-
-                                <div className="col-12 col-md-3">
-
-                                <button
-                                    type="submit"
-                                    className="btn btn-primary btn-lg w-100 fw-semibold shadow-sm"
-                                >
-                                    Add Task
-                                </button>
-
-                            </div>
-
-                            </div>
-
-                        </form>
+                        <TaskForm
+                            task={task}
+                            setTask={setTask}
+                            category={category}
+                            setCategory={setCategory}
+                            setTaskState={setTaskState}
+                        />
 
 
                         <div className="d-flex align-items-center justify-content-between mb-3">
@@ -274,107 +195,22 @@ const Tasks = () => {
 
                         ) : (
 
-
                             <ul className="list-group gap-2">
-
-                                {currentTaskState.array.map(
-                                    (item, index) => (
-
-                                    <li
+                                {currentTaskState.array.map((item) => (
+                                    <TaskItem
                                         key={item.id}
-                                        className="list-group-item border rounded-3 px-3 py-3 d-flex align-items-center gap-3 shadow-sm bg-white"
-                                    >
-
-
-                                        <span className="badge rounded-circle text-bg-primary p-2">
-                                            {index + 1}
-                                        </span>
-
-                                        {editingTaskId === item.id ? (
-                                            <>
-                                                <div className="flex-grow-1">
-                                                    <input
-                                                        type="text"
-                                                        className="form-control mb-2"
-                                                        value={editingText}
-                                                        onChange={(e) => setEditingText(e.target.value)}
-                                                    />
-
-                                                    <select
-                                                        className="form-select"
-                                                        value={editingCategory}
-                                                        onChange={(e) =>
-                                                            setEditingCategory(e.target.value)
-                                                        }
-                                                    >
-                                                        {categories.map((category) => (
-                                                            <option key={category} value={category}>
-                                                                {category}
-                                                            </option>
-                                                        ))}
-                                                    </select>
-                                                </div>
-
-                                                <button
-                                                    onClick={saveEdit}
-                                                    type="button"
-                                                    className="btn btn-success btn-sm rounded-pill px-3"
-                                                >
-                                                    Save
-                                                </button>
-
-                                                <button
-                                                    onClick={cancelEdit}
-                                                    type="button"
-                                                    className="btn btn-secondary btn-sm rounded-pill px-3"
-                                                >
-                                                    Cancel
-                                                </button>
-                                            </>
-                                        ) : (
-                                            <>
-                                                <div className="flex-grow-1">
-
-                                                    <div className="fw-semibold text-break">
-                                                        {item.task}
-                                                    </div>
-
-                                                    <span className="badge text-bg-secondary rounded-pill mt-1 px-3 py-2">
-                {item.category}
-            </span>
-
-                                                </div>
-
-
-                                            </>
-                                        )}
-
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                deleteTask(item.id)
-                                            }
-                                            className="btn btn-outline-danger btn-sm rounded-pill px-3"
-                                            aria-label={`Delete task: ${item.task}`}
-                                        >
-                                            Delete
-                                        </button>
-                                        <button
-                                            type="button"
-                                            onClick={() =>
-                                                editTask(item.id)
-                                            }
-                                            className="btn btn-outline-primary btn-sm rounded-pill px-3"
-                                            aria-label={`Edit task: ${item.task}`}
-                                        >
-                                            Edit
-                                        </button>
-
-                                    </li>
-
-                                    )
-                                )}
-
+                                        item={item}
+                                        onEdit={editTask}
+                                        onDelete={deleteTask}
+                                        saveEdit={saveEdit}
+                                        isEditing={editingTaskId === item.id}
+                                        editingText={editingText}
+                                        setEditingText={setEditingText}
+                                        editingCategory={editingCategory}
+                                        setEditingCategory={setEditingCategory}
+                                        cancelEdit={cancelEdit}
+                                    />
+                                ))}
                             </ul>
 
                         )}
@@ -384,7 +220,6 @@ const Tasks = () => {
             </section>
         </main>
     );
-}
-
+};
 
 export default Tasks;

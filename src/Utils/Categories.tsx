@@ -1,7 +1,11 @@
 const categorise     = [
-    "Frontend",
-    "Backend",
-    "Design"
+    "Programming",
+    "Fitness",
+    "Work",
+    "Personal",
+    "Shopping",
+    "Study",
+    "Other"
 
 ]
 
