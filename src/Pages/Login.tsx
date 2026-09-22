@@ -1,8 +1,11 @@
-import {useState} from "react";
-import {useRecoilState} from "recoil";
+import { useState } from "react";
+import { useRecoilState } from "recoil";
 import userState from "../States/userState";
-import {useForm} from "react-hook-form";
-
+import { useForm } from "react-hook-form";
+import { Link } from "react-router-dom";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "../lib/firebase";
+import Tasks from "./Tasks"
 
 type LoginFormData = {
     email: string;
@@ -10,52 +13,59 @@ type LoginFormData = {
 };
 
 const Login = () => {
-    const correctEmail = "admin@admin.com";
-    const correctPassword = "123456";
     const [currentUserState, setUserState] = useRecoilState(userState);
     const [loginMessage, setLoginMessage] = useState("");
-
 
     const {
         register,
         handleSubmit,
         setError,
-        formState: {errors},
+        formState: { errors },
     } = useForm<LoginFormData>();
 
-    const handleLogin = (data: LoginFormData) => {
-        if (data.email === correctEmail && data.password === correctPassword) {
-            setUserState({loggedIn: true});
-            setLoginMessage("Login successful!");
-            return;
-        }
+    const handleLogin = async (data: LoginFormData) => {
+        try {
+            await signInWithEmailAndPassword(
+                auth,
+                data.email,
+                data.password
+            );
 
-        setError("root", {
-            message: "User is not found!",
-        });
+            setUserState({ loggedIn: true });
+            setLoginMessage("Login successful!");
+        } catch (error) {
+            setError("root", {
+                message: "Invalid email or password",
+            });
+        }
     };
 
     if (currentUserState.loggedIn) {
         return (
-            <div className="container vh-100 d-flex justify-content-center align-items-center">
-                <div className="text-center">
-                    <h1 className="fw-bold">You are logged in</h1>
-                    <p className="text-secondary">Welcome back!</p>
-
+            <div>
+                <div>
+                  <Tasks/>
                 </div>
+                <div className="container vh-100 d-flex justify-content-center align-items-center">
+                    <div className="text-center">
+                        <h1 className="fw-bold">You are logged in</h1>
+                        <p className="text-secondary">Welcome back!</p>
+                    </div>
+                </div>
+
             </div>
+
+
+
         );
     }
 
     return (
         <main className="container py-4 py-md-5">
-
-            ```
             <section
                 className="mx-auto"
-                style={{maxWidth: "480px"}}
+                style={{ maxWidth: "480px" }}
             >
-
                 <div className="card border-0 shadow-lg overflow-hidden rounded-4">
 
                     <div
@@ -65,9 +75,7 @@ const Login = () => {
                                 "linear-gradient(135deg, #0d6efd, #6610f2, #d63384)",
                         }}
                     >
-
                         <div className="mb-3">
-
                             <div
                                 className="bg-white text-primary rounded-circle d-inline-flex align-items-center justify-content-center shadow"
                                 style={{
@@ -75,11 +83,10 @@ const Login = () => {
                                     height: "70px",
                                 }}
                             >
-                    <span className="fs-2">
-                        🔐
-                    </span>
+                                <span className="fs-2">
+                                    🔐
+                                </span>
                             </div>
-
                         </div>
 
                         <h1 className="h2 fw-bold mb-2">
@@ -89,7 +96,6 @@ const Login = () => {
                         <p className="mb-0 text-white-50">
                             Login to continue managing your tasks.
                         </p>
-
                     </div>
 
                     <div className="card-body p-4 p-md-5 bg-body-tertiary">
@@ -101,8 +107,8 @@ const Login = () => {
                                     {errors.root.message}
                                 </div>
                             )}
-                            <div className="mb-4">
 
+                            <div className="mb-4">
                                 <label
                                     htmlFor="email"
                                     className="form-label fw-semibold"
@@ -114,9 +120,7 @@ const Login = () => {
                                     id="email"
                                     type="email"
                                     className={`form-control form-control-lg ${
-                                        errors.email
-                                            ? "is-invalid"
-                                            : ""
+                                        errors.email ? "is-invalid" : ""
                                     }`}
                                     placeholder="Enter your email"
                                     {...register("email", {
@@ -134,10 +138,9 @@ const Login = () => {
                                         {errors.email.message}
                                     </div>
                                 )}
-
                             </div>
-                            <div className="mb-4">
 
+                            <div className="mb-4">
                                 <label
                                     htmlFor="password"
                                     className="form-label fw-semibold"
@@ -149,14 +152,11 @@ const Login = () => {
                                     id="password"
                                     type="password"
                                     className={`form-control form-control-lg ${
-                                        errors.password
-                                            ? "is-invalid"
-                                            : ""
+                                        errors.password ? "is-invalid" : ""
                                     }`}
                                     placeholder="Enter your password"
                                     {...register("password", {
-                                        required:
-                                            "Password is required",
+                                        required: "Password is required",
                                         minLength: {
                                             value: 6,
                                             message:
@@ -170,10 +170,8 @@ const Login = () => {
                                         {errors.password.message}
                                     </div>
                                 )}
-
                             </div>
 
-                            {/* LOGIN BUTTON */}
                             <button
                                 type="submit"
                                 className="btn btn-primary btn-lg w-100 fw-semibold shadow-sm"
@@ -181,19 +179,31 @@ const Login = () => {
                                 Login
                             </button>
 
+                            <div className="text-center mt-3">
+                                <small className="text-secondary">
+                                    Don't have an account?{" "}
+                                    <Link
+                                        to="/register"
+                                        className="btn btn-link p-0 text-decoration-none fw-semibold"
+                                    >
+                                        Register
+                                    </Link>
+                                </small>
+                            </div>
+
                         </form>
 
                     </div>
-                    <div className="card-footer bg-white border-0 text-center py-3">
 
+                    <div className="card-footer bg-white border-0 text-center py-3">
                         <small className="text-secondary">
                             Task Manager • Stay organized and productive
                         </small>
                     </div>
+
                 </div>
             </section>
         </main>
-
     );
 };
 
