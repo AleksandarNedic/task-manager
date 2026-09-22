@@ -1,21 +1,17 @@
 # Recoil Task Manager
 
-A simple task manager built with React, TypeScript, Recoil and LocalStorage.
+A simple task manager built with React, TypeScript, Recoil and Firebase Firestore.
 
 ## Features
 
 * Add new tasks
+* Edit tasks
 * Delete tasks
-* Save tasks in LocalStorage
+* Save tasks in Firebase Firestore
 * Keep tasks after page refresh
+* Separate tasks for each user
 * User login and logout functionality
 
-## Demo Account
-
-The application currently has one available account:
-
-* **Email:** `admin@admin.com`
-* **Password:** `123456`
 
 ## Technologies
 
@@ -23,5 +19,6 @@ The application currently has one available account:
 * TypeScript
 * Recoil
 * Bootstrap
-* LocalStorage
-
+* Firebase
+* Firebase Authentication
+* Firebase Firestore
