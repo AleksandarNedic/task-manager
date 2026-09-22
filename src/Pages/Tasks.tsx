@@ -1,11 +1,20 @@
 import categories from "../Utils/Categories";
-import {useState} from "react";
+import { useState, useEffect } from "react";
 import "bootstrap/dist/css/bootstrap.min.css";
-import {useRecoilState} from "recoil";
+import { useRecoilState } from "recoil";
 import taskState from "../States/taskState";
 import userState from "../States/userState";
 import TaskItem from "../Components/TaskItem";
-import TaskForm from "../Components/TaskForm"
+import TaskForm from "../Components/TaskForm";
+import {
+    collection,
+    getDocs,
+    deleteDoc,
+    updateDoc,
+    query,
+    where,
+} from "firebase/firestore";
+import { db, auth } from "../lib/firebase";
 
 const Tasks = () => {
     const [currentTaskState, setTaskState] = useRecoilState(taskState);
@@ -17,62 +26,126 @@ const Tasks = () => {
     const [editingText, setEditingText] = useState("");
     const [editingCategory, setEditingCategory] = useState(categories[0]);
 
+    useEffect(() => {
+        const getTasks = async () => {
+            try {
+                const user = auth.currentUser;
 
+                if (!user) {
+                    return;
+                }
+
+                const q = query(
+                    collection(db, "tasks"),
+                    where("userId", "==", user.uid)
+                );
+
+                const querySnapshot = await getDocs(q);
+
+                const tasks = querySnapshot.docs.map((doc) => {
+                    const data = doc.data();
+
+                    return {
+                        id: data.id,
+                        task: data.task,
+                        comment: data.comment ?? "",
+                        category: data.category,
+                        userId: data.userId,
+                    };
+                });
+
+                setTaskState({
+                    array: tasks,
+                });
+            } catch (error) {
+                console.log(error);
+            }
+        };
+
+        void getTasks();
+    }, [setTaskState]);
 
     const cancelEdit = () => {
         setEditingTaskId(null);
-    }
+    };
 
-
-    const saveEdit = () => {
-
+    const saveEdit = async () => {
         if (editingTaskId === null || !editingText.trim()) {
             return;
         }
 
-        setTaskState((currentTaskState) => (
-            {
+        try {
+            const q = query(
+                collection(db, "tasks"),
+                where("id", "==", editingTaskId)
+            );
+
+            const querySnapshot = await getDocs(q);
+
+            querySnapshot.forEach((doc) => {
+                void updateDoc(doc.ref, {
+                    task: editingText.trim(),
+                    category: editingCategory,
+                });
+            });
+
+            setTaskState((currentTaskState) => ({
                 array: currentTaskState.array.map((task) =>
-                    task.id === editingTaskId ? {
-                    ...task,
-                        task:editingText,
-                        category:editingCategory,
+                    task.id === editingTaskId
+                        ? {
+                            ...task,
+                            task: editingText.trim(),
+                            category: editingCategory,
+                        }
+                        : task
+                ),
+            }));
 
-                    } : task
-
-
-
-                )
-            }
-        ))
-        setEditingTaskId(null);
-
-    }
+            setEditingTaskId(null);
+        } catch (error) {
+            console.log(error);
+        }
+    };
 
     const editTask = (taskId: number) => {
-             const taskToEdit = currentTaskState.array.find(
-                 (task) => task.id === taskId
-             )
+        const taskToEdit = currentTaskState.array.find(
+            (task) => task.id === taskId
+        );
+
         if (!taskToEdit) {
             return;
         }
+
         setEditingTaskId(taskId);
         setEditingText(taskToEdit.task);
         setEditingCategory(taskToEdit.category);
     };
 
-    const deleteTask = (taskId: number) => {
-        setTaskState((currentState) => ({
-            array: currentState.array.filter(
-                (task) => task.id !== taskId
-            ),
-        }));
+    const deleteTask = async (taskId: number) => {
+        try {
+            const q = query(
+                collection(db, "tasks"),
+                where("id", "==", taskId)
+            );
+
+            const querySnapshot = await getDocs(q);
+
+            querySnapshot.forEach((doc) => {
+                void deleteDoc(doc.ref);
+            });
+
+            setTaskState((currentState) => ({
+                array: currentState.array.filter(
+                    (task) => task.id !== taskId
+                ),
+            }));
+        } catch (error) {
+            console.log(error);
+        }
     };
 
-
-
     const logOut = () => {
-        setUserState({loggedIn: false});
+        setUserState({ loggedIn: false });
     };
 
     if (!currentUserState.loggedIn) {
@@ -85,10 +158,9 @@ const Tasks = () => {
         <main className="container py-4 py-md-5">
             <section
                 className="mx-auto"
-                style={{maxWidth: "920px"}}
+                style={{ maxWidth: "920px" }}
             >
                 <div className="card border-0 shadow-lg overflow-hidden rounded-4">
-
 
                     <div
                         className="p-4 p-md-5 text-white"
@@ -97,13 +169,12 @@ const Tasks = () => {
                                 "linear-gradient(135deg, #0d6efd, #6610f2, #d63384)",
                         }}
                     >
-                        <div
-                            className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-4">
+                        <div className="d-flex flex-column flex-sm-row align-items-sm-center justify-content-between gap-4">
 
                             <div>
-                            <span className="badge bg-white text-primary rounded-pill px-3 py-2 mb-3">
-                                TASK MANAGER
-                            </span>
+                                <span className="badge bg-white text-primary rounded-pill px-3 py-2 mb-3">
+                                    TASK MANAGER
+                                </span>
 
                                 <h1 className="display-5 fw-bold mb-2">
                                     Get things done.
@@ -125,13 +196,13 @@ const Tasks = () => {
                                 >
                                     <div className="text-center">
 
-                                    <span className="d-block display-6 fw-bold text-primary">
-                                        {taskCount}
-                                    </span>
+                                        <span className="d-block display-6 fw-bold text-primary">
+                                            {taskCount}
+                                        </span>
 
                                         <span className="small fw-bold text-secondary">
-                                        TASKS
-                                    </span>
+                                            TASKS
+                                        </span>
 
                                     </div>
                                 </div>
@@ -148,8 +219,8 @@ const Tasks = () => {
                         </div>
                     </div>
 
-
                     <div className="card-body p-4 p-md-5 bg-body-tertiary">
+
                         <TaskForm
                             task={task}
                             setTask={setTask}
@@ -158,7 +229,6 @@ const Tasks = () => {
                             setTaskState={setTaskState}
                         />
 
-
                         <div className="d-flex align-items-center justify-content-between mb-3">
 
                             <h2 className="h4 fw-bold mb-0">
@@ -166,14 +236,13 @@ const Tasks = () => {
                             </h2>
 
                             <span className="badge rounded-pill text-bg-primary px-3 py-2">
-                            {taskCount}{" "}
+                                {taskCount}{" "}
                                 {taskCount === 1
                                     ? "task"
                                     : "tasks"}
-                        </span>
+                            </span>
 
                         </div>
-
 
                         {taskCount === 0 ? (
 
@@ -196,6 +265,7 @@ const Tasks = () => {
                         ) : (
 
                             <ul className="list-group gap-2">
+
                                 {currentTaskState.array.map((item) => (
                                     <TaskItem
                                         key={item.id}
@@ -211,6 +281,7 @@ const Tasks = () => {
                                         cancelEdit={cancelEdit}
                                     />
                                 ))}
+
                             </ul>
 
                         )}

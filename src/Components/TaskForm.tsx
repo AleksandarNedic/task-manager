@@ -1,5 +1,7 @@
-import {type FormEvent} from "react";
-import categories from "../Utils/Categories"
+import { type FormEvent } from "react";
+import categories from "../Utils/Categories";
+import { addDoc, collection } from "firebase/firestore";
+import { db, auth } from "../lib/firebase";
 
 const TaskForm = ({
                       task,
@@ -7,10 +9,9 @@ const TaskForm = ({
                       category,
                       setCategory,
                       setTaskState,
-
                   }: any) => {
 
-    const handleSubmit = (e: FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
         e.preventDefault();
 
         const taskText = task.trim();
@@ -19,17 +20,31 @@ const TaskForm = ({
             return;
         }
 
+        const user = auth.currentUser;
+
+        if (!user) {
+            return;
+        }
+
         const newTask = {
             id: Date.now(),
             task: taskText,
+            comment: "",
             category: category,
+            userId: user.uid,
         };
 
-        setTaskState((currentState: any) => ({
-            array: [...currentState.array, newTask],
-        }));
+        try {
+            await addDoc(collection(db, "tasks"), newTask);
 
-        setTask("");
+            setTaskState((currentState: any) => ({
+                array: [...currentState.array, newTask],
+            }));
+
+            setTask("");
+        } catch (error) {
+            console.log(error);
+        }
     };
 
     return (
